@@ -1,27 +1,27 @@
 /***********************************************************************
-Copyright (c) 2006-2012, Skype Limited. All rights reserved. 
-Redistribution and use in source and binary forms, with or without 
-modification, (subject to the limitations in the disclaimer below) 
+Copyright (c) 2006-2012, Skype Limited. All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, (subject to the limitations in the disclaimer below)
 are permitted provided that the following conditions are met:
 - Redistributions of source code must retain the above copyright notice,
 this list of conditions and the following disclaimer.
-- Redistributions in binary form must reproduce the above copyright 
-notice, this list of conditions and the following disclaimer in the 
+- Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
 documentation and/or other materials provided with the distribution.
-- Neither the name of Skype Limited, nor the names of specific 
-contributors, may be used to endorse or promote products derived from 
+- Neither the name of Skype Limited, nor the names of specific
+contributors, may be used to endorse or promote products derived from
 this software without specific prior written permission.
-NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED 
-BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED
+BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
-COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF 
-USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***********************************************************************/
 
@@ -68,7 +68,7 @@ void swap_endian(
 }
 #endif
 
-#if (defined(_WIN32) || defined(_WINCE)) 
+#if (defined(_WIN32) || defined(_WINCE))
 #include <windows.h>	/* timer */
 #else    // Linux or Mac
 #include <sys/time.h>
@@ -136,7 +136,7 @@ int main( int argc, char* argv[] )
     if( argc < 3 ) {
         print_usage( argv );
         exit( 0 );
-    } 
+    }
 
     /* default settings */
     quiet     = 0;
@@ -177,18 +177,22 @@ int main( int argc, char* argv[] )
     if( bitInFile == NULL ) {
         printf( "Error: could not open input file %s\n", bitInFileName );
         exit( 0 );
-    } 
+    }
 
     /* Check Silk header */
     {
         char header_buf[ 50 ];
-        counter = fread( header_buf, sizeof( char ), strlen( "#!SILK_V3" ), bitInFile );
-        header_buf[ strlen( "#!SILK_V3" ) ] = '\0'; /* Terminate with a null character */
-        if( strcmp( header_buf, "#!SILK_V3" ) != 0 ) { 
+        static const char Tencent_break[] = "";
+        static const char Silk_header[] = "#!SILK_V3";
+        fread(header_buf, sizeof(char), strlen(Tencent_break) + strlen(Silk_header), bitInFile);
+        if( strncmp(header_buf, Silk_header, strlen(Silk_header)) == 0 ) { // normal
+           fseek(bitInFile, -strlen(Tencent_break), SEEK_CUR);
+        } else if ( ! (strncmp(header_buf, Tencent_break, strlen(Tencent_break)) == 0 && strncmp(header_buf + strlen(Tencent_break), Silk_header, strlen(Silk_header)) == 0) ) { // not tencent either
             /* Non-equal strings */
-            printf( "Error: Wrong Header %s\n", header_buf );
-            exit( 0 );
+            printf("Error: Wrong Header %s\n", header_buf);
+            exit(0);
         }
+        counter = strlen(Silk_header);
     }
 
     speechOutFile = fopen( speechOutFileName, "wb" );
@@ -251,7 +255,7 @@ int main( int argc, char* argv[] )
         if( nBytes < 0 || counter < 1 ) {
             break;
         }
-        
+
         /* Read payload */
         counter = fread( payloadEnd, sizeof( SKP_uint8 ), nBytes, bitInFile );
         if( ( SKP_int16 )counter < nBytes ) {
@@ -318,8 +322,8 @@ int main( int argc, char* argv[] )
                     frames  = 0;
                 }
                 /* Until last 20 ms frame of packet has been decoded */
-            } while( DecControl.moreInternalDecoderFrames ); 
-        } else {    
+            } while( DecControl.moreInternalDecoderFrames );
+        } else {
             /* Loss: Decode enough frames to cover one packet duration */
             for( i = 0; i < DecControl.framesPerPacket; i++ ) {
                 /* Generate 20 ms */
@@ -337,7 +341,7 @@ int main( int argc, char* argv[] )
         totPackets++;
 
         /* Write output to file */
-#ifdef _SYSTEM_IS_BIG_ENDIAN   
+#ifdef _SYSTEM_IS_BIG_ENDIAN
         swap_endian( out, tot_len );
 #endif
         fwrite( out, sizeof( SKP_int16 ), tot_len, speechOutFile );
@@ -346,6 +350,12 @@ int main( int argc, char* argv[] )
         totBytes = 0;
         for( i = 0; i < MAX_LBRR_DELAY; i++ ) {
             totBytes += nBytesPerPacket[ i + 1 ];
+        }
+        /* Check if the received totBytes is valid */
+        if (/*totBytes < 0 || */totBytes > sizeof(payload))
+        {
+            fprintf( stderr, "\rPackets decoded:             %d", totPackets );
+            return -1;
         }
         SKP_memmove( payload, &payload[ nBytesPerPacket[ 0 ] ], totBytes * sizeof( SKP_uint8 ) );
         payloadEnd -= nBytesPerPacket[ 0 ];
@@ -410,7 +420,7 @@ int main( int argc, char* argv[] )
                 }
             /* Until last 20 ms frame of packet has been decoded */
             } while( DecControl.moreInternalDecoderFrames );
-        } else {    
+        } else {
             /* Loss: Decode enough frames to cover one packet duration */
 
             /* Generate 20 ms */
@@ -429,7 +439,7 @@ int main( int argc, char* argv[] )
         totPackets++;
 
         /* Write output to file */
-#ifdef _SYSTEM_IS_BIG_ENDIAN   
+#ifdef _SYSTEM_IS_BIG_ENDIAN
         swap_endian( out, tot_len );
 #endif
         fwrite( out, sizeof( SKP_int16 ), tot_len, speechOutFile );
@@ -439,6 +449,15 @@ int main( int argc, char* argv[] )
         for( i = 0; i < MAX_LBRR_DELAY; i++ ) {
             totBytes += nBytesPerPacket[ i + 1 ];
         }
+
+        /* Check if the received totBytes is valid */
+        if (/*totBytes < 0 || */totBytes > sizeof(payload))
+        {
+            
+            fprintf( stderr, "\rPackets decoded:              %d", totPackets );
+            return -1;
+        }
+        
         SKP_memmove( payload, &payload[ nBytesPerPacket[ 0 ] ], totBytes * sizeof( SKP_uint8 ) );
         payloadEnd -= nBytesPerPacket[ 0 ];
         SKP_memmove( nBytesPerPacket, &nBytesPerPacket[ 1 ], MAX_LBRR_DELAY * sizeof( SKP_int16 ) );

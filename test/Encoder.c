@@ -107,6 +107,7 @@ static void print_usage( char* argv[] ) {
     printf( "\n-complexity <comp>   : Set complexity, 0: low, 1: medium, 2: high; default: 2" );
     printf( "\n-DTX <flag>          : Enable DTX (0/1); default: 0" );
     printf( "\n-quiet               : Print only some basic values" );
+    printf( "\n-tencent             : Use Tencent header" );
     printf( "\n");
 }
 
@@ -140,7 +141,7 @@ int main( int argc, char* argv[] )
 #else
     SKP_int32 complexity_mode = 2;
 #endif
-    SKP_int32 DTX_enabled = 0, INBandFEC_enabled = 0, quiet = 0;
+    SKP_int32 DTX_enabled = 0, INBandFEC_enabled = 0, quiet = 0, tencent = 0;
     SKP_SILK_SDK_EncControlStruct encControl; // Struct for input to encoder
     SKP_SILK_SDK_EncControlStruct encStatus;  // Struct for status of encoder
 
@@ -180,6 +181,9 @@ int main( int argc, char* argv[] )
         } else if( SKP_STR_CASEINSENSITIVE_COMPARE( argv[ args ], "-DTX") == 0 ) {
             sscanf( argv[ args + 1 ], "%d", &DTX_enabled );
             args += 2;
+        } else if( SKP_STR_CASEINSENSITIVE_COMPARE( argv[ args ], "-tencent" ) == 0 ) {
+            tencent = 1;
+            args ++;
         } else if( SKP_STR_CASEINSENSITIVE_COMPARE( argv[ args ], "-quiet" ) == 0 ) {
             quiet = 1;
             args++;
@@ -227,6 +231,11 @@ int main( int argc, char* argv[] )
 
     /* Add Silk header to stream */
     {
+        if( tencent ) {
+	        static const char Tencent_break[] = "";
+            fwrite( Tencent_break, sizeof( char ), strlen( Tencent_break ), bitOutFile );
+        }
+
         static const char Silk_header[] = "#!SILK_V3";
         fwrite( Silk_header, sizeof( char ), strlen( Silk_header ), bitOutFile );
     }
@@ -337,7 +346,9 @@ int main( int argc, char* argv[] )
     nBytes = -1;
 
     /* Write payload size */
-    fwrite( &nBytes, sizeof( SKP_int16 ), 1, bitOutFile );
+    if( !tencent ) {
+        fwrite( &nBytes, sizeof( SKP_int16 ), 1, bitOutFile );
+    }
 
     /* Free Encoder */
     free( psEnc );
