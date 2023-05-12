@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="SignalCompare"
 	ProjectGUID="{7FE8F544-9175-40C3-A187-7F15CE9A75D8}"
 	RootNamespace="Test"
@@ -17,8 +17,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)"
-			IntermediateDirectory="$(ConfigurationName)_SigCmp"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)\$(PlatformName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(PlatformName)\$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			>
@@ -61,7 +61,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(SolutionDir)SignalCompare_debug.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=""
 				IgnoreAllDefaultLibraries="false"
@@ -98,8 +97,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)"
-			IntermediateDirectory="$(ConfigurationName)_SigCmp"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)\$(PlatformName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(PlatformName)\$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -142,7 +141,6 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/fixed:no"
-				OutputFile="$(SolutionDir)SignalCompare.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories=""
 				IgnoreDefaultLibraryNames=""

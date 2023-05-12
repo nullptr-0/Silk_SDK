@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="Enc_SDK"
 	ProjectGUID="{6D97A8EF-5724-4D85-8BF4-C583714BBA78}"
 	RootNamespace="Enc"
@@ -17,8 +17,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)"
-			IntermediateDirectory="$(ConfigurationName)\Enc"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)\$(PlatformName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(PlatformName)\$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			>
@@ -61,7 +61,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)\Encoder_debug.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=""
 				IgnoreAllDefaultLibraries="false"
@@ -98,8 +97,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)"
-			IntermediateDirectory="$(ConfigurationName)_Enc"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)\$(PlatformName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(PlatformName)\$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -142,7 +141,6 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/fixed:no"
-				OutputFile="$(OutDir)\Encoder.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories=""
 				IgnoreDefaultLibraryNames=""
